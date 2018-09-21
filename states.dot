@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: BSD-2-Clause
+#
+# Copyright (c) 2018 Andreas Dachsberger.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+
+digraph{
+    START [label = "", peripheries = 0]
+    IDLE
+    RECEIVED_FILE
+    DEVICE_SELECTED [label = "DEVICE_SELECTED \ndo/processFile"]
+    TEST_RUNNING [label = "TEST_RUNNING \ndo/transmitToDevice \n do/runTest \n do/readOutput"]
+    OUTPUT_RECEIVED
+    FINISHED [label = "FINISHED \ndo/exit"]
+    RECONFIGURE_DEVICE [label = "RECONFIGURE_DEVICE \ndo/restart_Device \ndo/react_On_Timeout"]
+    END [label = "", peripheries = 2, shape = point]
+    
+    START -> IDLE
+    IDLE -> RECEIVED_FILE [label = "receive_File"]
+    RECEIVED_FILE -> DEVICE_SELECTED [label = "select_Device"]
+    DEVICE_SELECTED -> TEST_RUNNING [label = "process_File"]
+    TEST_RUNNING -> OUTPUT_RECEIVED [label = "[! timeout]"]
+    TEST_RUNNING -> RECONFIGURE_DEVICE [label = "[timeout]"]
+    RECONFIGURE_DEVICE -> TEST_RUNNING [label = "[numTimeouts <= maxNumTimeouts]"]
+    RECONFIGURE_DEVICE -> FINISHED [label = "[numTimeouts > maxNumTimeouts]"]
+    OUTPUT_RECEIVED -> FINISHED [label = "send_Output_To_Client"]
+    FINISHED -> END
+}
